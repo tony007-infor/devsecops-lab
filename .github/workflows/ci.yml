@@ -127,7 +127,8 @@ jobs:
             -t http://127.0.0.1:8080 \
             -m 1 -I \
             -J zap-report.json \
-            -r zap-report.html
+            -r zap-report.html \
+            -x zap-report.xml
 
       - name: Detener aplicación del laboratorio
         if: always()
