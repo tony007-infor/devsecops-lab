@@ -57,10 +57,63 @@ jobs:
       - name: Iniciar aplicación para DAST
         run: docker compose up --build -d
 
+      
       - name: Verificar que la aplicación esté lista
+        shell: bash
         run: |
-          curl --fail --silent --show-error --retry 15 --retry-delay 2 --retry-connrefused \
-            http://127.0.0.1:8080/health
+          set -euo pipefail
+
+          container_id="$(docker compose ps -q web)"
+
+          if [ -z "$container_id" ]; then
+            echo "ERROR: No se encontró el contenedor web"
+            docker compose ps -a
+            docker compose logs --no-color web || true
+            exit 1
+          fi
+
+          echo "Esperando a que el contenedor esté saludable..."
+
+          for attempt in $(seq 1 40); do
+            status="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}no-healthcheck{{end}}' "$container_id")"
+            running="$(docker inspect --format '{{.State.Running}}' "$container_id")"
+
+            echo "Intento $attempt/40: running=$running, health=$status"
+
+            if [ "$running" != "true" ]; then
+              echo "ERROR: El contenedor se detuvo"
+              docker compose logs --no-color web || true
+              exit 1
+            fi
+
+            if [ "$status" = "healthy" ]; then
+              echo "Contenedor saludable"
+              break
+            fi
+
+            sleep 3
+          done
+
+          echo "Verificando conexión HTTP..."
+
+          for attempt in $(seq 1 20); do
+            if curl --fail --silent --show-error \
+              --max-time 5 \
+              http://127.0.0.1:8080/health; then
+
+              echo "Aplicación lista para ejecutar OWASP ZAP"
+              exit 0
+            fi
+
+            echo "Intento HTTP $attempt/20"
+            sleep 3
+          done
+
+          echo "ERROR: La aplicación no responde"
+          docker compose ps -a
+          docker compose logs --no-color --tail=100 web || true
+          exit 1
+
 
       - name: DAST - ZAP Baseline (análisis pasivo)
         run: |
