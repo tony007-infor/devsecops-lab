@@ -1,4 +1,4 @@
-name: CI y seguridad (SAST + Docker)
+name: CI y seguridad (SAST + Docker + DAST)
 
 on:
   push:
@@ -53,6 +53,32 @@ jobs:
           severity: CRITICAL,HIGH,MEDIUM,LOW
           ignore-unfixed: false
           exit-code: '0'
+
+      - name: Iniciar aplicación para DAST
+        run: docker compose up --build -d
+
+      - name: Verificar que la aplicación esté lista
+        run: |
+          curl --fail --silent --show-error --retry 15 --retry-delay 2 --retry-connrefused \
+            http://127.0.0.1:8080/health
+
+      - name: DAST - ZAP Baseline (análisis pasivo)
+        run: |
+          # La imagen de ZAP utiliza un usuario no privilegiado.
+          # Solo este directorio temporal del runner recibe permisos de escritura.
+          chmod 777 reports
+          docker run --rm --network host \
+            -v "${{ github.workspace }}/reports:/zap/wrk/:rw" \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py \
+            -t http://127.0.0.1:8080 \
+            -m 1 -I \
+            -J zap-report.json \
+            -r zap-report.html
+
+      - name: Detener aplicación del laboratorio
+        if: always()
+        run: docker compose down --remove-orphans
 
       - name: Guardar reportes de seguridad
         if: always()
