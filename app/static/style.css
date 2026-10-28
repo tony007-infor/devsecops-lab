@@ -1,0 +1,18 @@
+body {
+  font-family: system-ui, sans-serif;
+  background: #101827;
+  color: #f3f7ff;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+}
+main {
+  padding: 36px;
+  border: 1px solid #37435b;
+  border-radius: 18px;
+  max-width: 620px;
+  background: #17223a;
+}
+small { color: #8eb0e0; }
+a { color: #91c7ff; }
