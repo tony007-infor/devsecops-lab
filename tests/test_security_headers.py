@@ -11,6 +11,8 @@ def test_security_headers_on_pages_and_health():
         assert 'unsafe-inline' not in response.headers['Content-Security-Policy']
         assert response.headers['Permissions-Policy'] == 'camera=(), microphone=(), geolocation=()'
         assert response.headers['Cross-Origin-Embedder-Policy'] == 'require-corp'
+        assert response.headers["Cross-Origin-Resource-Policy"] == "same-origin"
+        assert response.headers["Cross-Origin-Opener-Policy"] == "same-origin"
         assert response.headers['Cache-Control'] == 'no-store, max-age=0'
 
 
