@@ -1,0 +1,10 @@
+{
+  "Results": [
+    {
+      "Target": "devsecops-lab:ci (debian)",
+      "Vulnerabilities": [
+        {"VulnerabilityID": "CVE-DEMO-0001", "PkgName": "paquete-demo", "Severity": "CRITICAL"}
+      ]
+    }
+  ]
+}

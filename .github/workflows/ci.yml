@@ -142,3 +142,37 @@ jobs:
           path: reports/
           if-no-files-found: warn
           retention-days: 14
+  
+  security-gate:
+    name: Security Gate (Trivy CRITICAL)
+    needs: test-and-security
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Descargar reportes del pipeline
+        uses: actions/download-artifact@v4
+        with:
+          name: reportes-seguridad
+          path: reports
+
+      - name: Evaluar política de seguridad
+        run: |
+          python3 scripts/security_gate.py \
+            --report reports/trivy-image.json \
+            --baseline security/baseline-critical.json
+
+  deploy-simulation:
+    name: Simulación de aprobación de despliegue
+    needs: security-gate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Autorizar despliegue de laboratorio
+        run: echo 'DESPLIEGUE DE PRUEBA AUTORIZADO. No se publica ninguna aplicación.'
+        
