@@ -37,6 +37,7 @@ def create_app():
     def add_security_headers(response):
         response.headers['X-Content-Type-Options'] = 'nosniff'
         response.headers['X-Frame-Options'] = 'DENY'
+        response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
         response.headers['Referrer-Policy'] = 'no-referrer'
         response.headers['Content-Security-Policy'] = (
             "default-src 'none'; "
