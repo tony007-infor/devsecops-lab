@@ -1,0 +1,43 @@
+
+name: Demo - Security Gate Bloqueado
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+
+  security-gate-demo:
+    name: Security Gate - Detectar vulnerabilidad critica
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Ejecutar Security Gate
+        run: |
+          echo "Iniciando prueba de bloqueo..."
+          echo "Analizando reporte con CVE critica simulada"
+
+          python scripts/security_gate.py \
+            --report security/demo-critical.json \
+            --baseline security/baseline-critical.json
+
+  deploy-demo:
+    name: Despliegue simulado
+    needs: security-gate-demo
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Autorizar despliegue
+        run: |
+          echo "Security Gate aprobado"
+          echo "Despliegue de prueba autorizado"
